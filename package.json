@@ -1,0 +1,25 @@
+{
+  "name": "felix-against-humanity",
+  "version": "1.0.0",
+  "description": "Cards against humanity telegram chatbot",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "felix",
+    "against",
+    "humanity",
+    "cards",
+    "cardcast",
+    "telegram"
+  ],
+  "author": "Felix Nox",
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^5.3.10"
+  },
+  "devDependencies": {
+    "jest": "^24.1.0"
+  }
+}
