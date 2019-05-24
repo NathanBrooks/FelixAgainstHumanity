@@ -12,7 +12,19 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+*/
 
-'use strict';
+const telegramAPI = require('../apiHandlers/telegramAPI').telegramAPI;
 
+var playerManager = {};
+
+
+
+telegramAPI.EventManager.on('message', (message) => {
+    switch(message.text.toLowerCase()){
+    }
+});
+
+module.exports = {
+  playerManager : playerManager
+}
