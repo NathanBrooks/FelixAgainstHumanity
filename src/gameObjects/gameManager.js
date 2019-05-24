@@ -14,49 +14,24 @@
  * limitations under the License.
 */
 
-const telegramAPI = require('../apiHandlers/telegramAPI').telegramAPI;
+const telegramAPI = require('../apiHandlers/telegramAPI');
 
 var gameManager = {};
 
-function createGame(chat_id, user_id) {
-  telegramAPI.sendMessageToID('You have created a game!', chat_id);
-}
+telegramAPI.registerCommand('create_game', 'group', (context) => {
+  context.reply(`Game created!`);
+});
 
-function deleteGame(chat_id, user_id) {
-  telegramAPI.sendMessageToID('You have destroyed a game!', chat_id);
-}
+telegramAPI.registerCommand('delete_game', 'group', (context) => {
+  context.reply(`Game deleted!`);
+});
 
-function joinGame(chat_id, user_id) {
-  telegramAPI.sendMessageToID('You have join a game!', chat_id);
-}
+telegramAPI.registerCommand('join', 'group', (context) => {
+  context.reply(`Game joined!`);
+});
 
-function leaveGame(chat_id, user_id) {
-  telegramAPI.sendMessageToID('You have left a game!', chat_id);
-}
-
-function testFunc(chat_id, user_id) {
-  telegramAPI.sendMessageToID('attempting to send direct message...', chat_id);
-  telegramAPI.sendMessageToID('This is a test message!', user_id);
-}
-
-telegramAPI.EventManager.on('message', (message) => {
-    if(message.chat.type == 'group') {
-      switch(message.text.toLowerCase()){
-        case '/create_game':
-          createGame(message.chat.id, message.from.id);
-        case '/delete_game':
-          deleteGame(message.chat.id, message.from.id);
-        case '/join':
-          joinGame(message.chat.id, message.from.id);
-          break;
-        case '/leave':
-          leaveGame(message.chat.id, message.from.id);
-        case '/test':
-          testFunc(message.chat.id, message.from.id);
-        default:
-      }
-    }
-
+telegramAPI.registerCommand('leave', 'group', (context) => {
+  context.reply(`Game left!`);
 });
 
 module.exports = {

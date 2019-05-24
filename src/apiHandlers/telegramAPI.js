@@ -16,111 +16,60 @@
 
 'use strict';
 
-const telegramBotApi = require('telegram-bot-api');
-const events = require('events');
+const Telegraf = require('telegraf');
 
-var telegram = new telegramBotApi({
-  token: process.env.TELEGRAM_API_KEY,
-  updates: {
-    enabled: true,
-  },
+console.log('initializing telegraf');
+
+const bot = new Telegraf(process.env.TELEGRAM_API_KEY);
+bot.launch();
+
+bot.use((ctx, next) => {
+  console.log(ctx.message);
+  next();
 });
 
-var telegramAPI = {}
-
-telegramAPI.KeyboardButton = class {
+class KeyboardButton {
   constructor(text) {
     this.text = text;
   }
 }
 
-telegramAPI.ReplyKeyboardMarkup = class {
+class ReplyKeyboadMarkup {
   constructor(keyboardItems) {
     this.keyboard = [];
+    this.one_time_keyboard = true;
     for(var key in keyboardItems) {
-      this.keyboard.push([new telegramAPI.KeyboardButton(keyboardItems[key])]);
+      this.keyboard.push([new KeyboardButton(keyboardItems[key])]);
     }
   }
 }
 
-telegramAPI.sendMessage = (text, message) => {
-    if (text.split(/\s/) <= 1) {
-      telegram.sendMessage({
-            chat_id: message.chat.id,
-            text: '<empty message>',
-      });
-    } else {
-      var i = 0;
-      while (i != text.length) {
-        var tmp = i;
-        i = Math.min(i + 4096, text.length);
-        telegram.sendMessage({
-            chat_id: message.chat.id,
-            text: text.substring(tmp, i),
-        });
-      }
-    }
+function sendKeyboard(chatID, message, keys) {
+  return bot.telegram.sendMessage(chatID, message,
+    { reply_markup: JSON.stringify(new ReplyKeyboadMarkup(keys)) } );
 }
 
-telegramAPI.sendMessageToUser = (text, message) => {
-  if(text.split(/\s/) <= 1) {
-    telegram.sendMessage({
-      chat_id: message.from.id,
-      text: '<empty message>',
-    });
-  } else {
-    var i = 0;
-    while (i != text.length) {
-      var tmp = i;
-      i = Math.min(i + 4096, text.length);
-      telegram.sendMessage({
-          chat_id: message.from.id,
-          text: text.substring(tmp, i),
-      });
-    }
-  }
-}
+/* debug and test commands */
 
-telegramAPI.sendMessageToID = (text, id) => {
-  if(text.split(/\s/) <= 1) {
-    telegram.sendMessage({
-      chat_id: id,
-      text: '<empty message>',
-    });
-  } else {
-    var i = 0;
-    while (i != text.length) {
-      var tmp = i;
-      i = Math.min(i + 4096, text.length);
-      telegram.sendMessage({
-          chat_id: id,
-          text: text.substring(tmp, i),
-      });
-    }
-  }
-}
+bot.command('keyboard', (ctx) => {
+  sendKeyboard(ctx.message.chat.id,
+    `have a keyboard`, [`thanks`, `aww you shouldn't have`,
+      `why would you do this to me`]);
+});
 
-telegramAPI.sendKeyboard = (keyboardItems, message) => {
-  var options = {
-    chat_id: message.chat.id,
-    text: 'test',
-    reply_to_message_id: message.id,
-    reply_markup:
-      JSON.stringify(new telegramAPI.ReplyKeyboardMarkup(keyboardItems))
-  }
+bot.command('test', (context) => {
+  context.reply(`Attempting to communicate with user...`);
 
-  telegram.sendMessage(options);
-}
-
-telegramAPI.EventManager = new events.EventEmitter();
-
-telegram.on('message', (message) => {
-  if(message && 'text' in message) {
-    telegramAPI.EventManager.emit('message', message);
-  }
-})
-
+  context.telegram.sendMessage(context.message.from.id, `test`).then(() => {
+    context.reply(`success!!!`);
+  }).catch((err) => {
+    context.reply(err.toString());
+  });
+});
 
 module.exports = {
-  telegramAPI : telegramAPI,
+  bot : bot,
+  sendKeyboard : sendKeyboard,
+  sendMessage : bot.telegram.sendMessage,
+  registerCommand: registerCommand
 };

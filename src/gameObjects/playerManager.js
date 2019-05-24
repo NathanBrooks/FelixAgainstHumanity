@@ -16,6 +16,7 @@
 
 const telegramAPI = require('../apiHandlers/telegramAPI').telegramAPI;
 
+/*
 var playerManager = {};
 
 
@@ -28,3 +29,4 @@ telegramAPI.EventManager.on('message', (message) => {
 module.exports = {
   playerManager : playerManager
 }
+*/

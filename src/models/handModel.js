@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2018 Nathan Tyler Brooks
  *
@@ -17,9 +16,13 @@
 
 'use strict';
 
-require('dotenv').config();
+const mongoose = require('mongoose');
 
-const telegramAPI = require('./src/apiHandlers/telegramAPI');
+var handSchema = mongoose.Schema({
+  cards : [ {
+    type: String,
+    required: false
+  } ]
+});
 
-const playerManager = require('./src/gameObjects/playerManager');
-const gameManager = require('./src/gameObjects/gameManager');
+module.exports = mongoose.model('Hand', handSchema);
