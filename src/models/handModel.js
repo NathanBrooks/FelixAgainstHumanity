@@ -22,7 +22,12 @@ var handSchema = mongoose.Schema({
   cards : [ {
     type: String,
     required: false
-  } ]
+  } ],
+
+  game_id : {
+    type: Number,
+    required: [ true, 'Missing Game ID!' ]
+  }
 });
 
 module.exports = mongoose.model('Hand', handSchema);

@@ -49,6 +49,17 @@ function sendKeyboard(chatID, message, keys) {
     { reply_markup: JSON.stringify(new ReplyKeyboadMarkup(keys)) } );
 }
 
+function checkForPrivateChat(userID) {
+  return new Promise((resolve, reject) => {
+    bot.telegram.sendMessage(userID, `Attempting to join game...`)
+      .then(() => {
+        return resolve(true);
+      }).catch((err) => {
+        return resolve(false);
+      });
+  });
+}
+
 /* debug and test commands */
 
 bot.command('keyboard', (ctx) => {
@@ -71,5 +82,4 @@ module.exports = {
   bot : bot,
   sendKeyboard : sendKeyboard,
   sendMessage : bot.telegram.sendMessage,
-  registerCommand: registerCommand
 };

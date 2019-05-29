@@ -28,7 +28,7 @@ var gameSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Player',
     required: [true, 'No admin specified!']
-  }
+  },
 
   player_list : [
     {
@@ -43,11 +43,11 @@ var gameSchema = mongoose.Schema({
       type: String,
       required: false
     }
-  ]
+  ],
 
   game_active : {
     type: Boolean,
-    required: [true, 'Game state not specified!']
+    required: [true, 'Game state not specified!'],
     default: true
   }
 });

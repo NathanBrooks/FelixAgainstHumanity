@@ -15,22 +15,24 @@
 */
 
 const telegramAPI = require('../apiHandlers/telegramAPI');
+const gameController = require('../controllers/gameController');
+const playerController = require('../controllers/playerController');
 
 var gameManager = {};
 
-telegramAPI.registerCommand('create_game', 'group', (context) => {
+telegramAPI.bot.command('create_game', 'group', (context) => {
   context.reply(`Game created!`);
 });
 
-telegramAPI.registerCommand('delete_game', 'group', (context) => {
+telegramAPI.bot.command('delete_game', 'group', (context) => {
   context.reply(`Game deleted!`);
 });
 
-telegramAPI.registerCommand('join', 'group', (context) => {
+telegramAPI.bot.command('join', 'group', (context) => {
   context.reply(`Game joined!`);
 });
 
-telegramAPI.registerCommand('leave', 'group', (context) => {
+telegramAPI.bot.command('leave', 'group', (context) => {
   context.reply(`Game left!`);
 });
 
