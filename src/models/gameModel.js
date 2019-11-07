@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Nathan Tyler Brooks
+ * Copyright 2019 Nathan Tyler Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,14 @@ var gameSchema = mongoose.Schema({
     type: Boolean,
     required: [true, 'Game state not specified!'],
     default: true
-  }
+  },
+
+  game_options: [
+    {
+      type: String,
+      requred: false,
+    }
+  ]
 });
 
 module.exports = mongoose.model('Game', gameSchema);

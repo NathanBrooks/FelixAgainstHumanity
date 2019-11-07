@@ -16,20 +16,22 @@
 
 'use strict';
 
-const mongoose = require('mongoose');
+var cardTypes = {
+  'CALL': 1,
+  'RESPONSE': 2,
+}
 
-var playerSchema = mongoose.Schema({
-  player_id : {
-    type: Number,
-    required: [true, 'Missing User ID!']
+class Card {
+  constructor(content, type, pack) {
+    this.content = content;
+    this.type = type;
+    this.pack = pack;
   }
 
-  hands : {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Hand',
-    required: false
+  static get cardTypes() {
+    return cardTypes;
   }
+}
 
-});
+module.exports = Card;
 
-module.exports = mongoose.model('Player', playerSchema);
