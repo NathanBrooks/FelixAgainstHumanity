@@ -19,7 +19,11 @@
 
 require('dotenv').config();
 
-const telegramAPI = require('./src/apiHandlers/telegramAPI');
+const TelegramUserManager = require('./src/apiHandlers/telegram/telegramUserManager');
 
-const playerManager = require('./src/gameObjects/playerManager');
-const gameManager = require('./src/gameObjects/gameManager');
+let UserManager = new TelegramUserManager();
+
+UserManager.sendUserMessage(9999, 1, "hello!");
+UserManager.sendUserMessage(9999, 1, "message2!");
+UserManager.sendUserMessage(9999, 2, "message3!");
+UserManager.sendUserMessage(9999, 4, "message4!");

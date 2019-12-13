@@ -17,6 +17,7 @@
   "author": "Felix Nox",
   "license": "ISC",
   "dependencies": {
+    "async-mutex": "^0.1.4",
     "dotenv": "^8.2.0",
     "mongoose": "^5.7.8",
     "telegraf": "^3.33.3"

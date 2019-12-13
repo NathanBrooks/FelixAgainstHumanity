@@ -18,86 +18,83 @@
 
 const gameModel = require('../models/gameModel');
 
-function findGameByChatID(chatID) {
-  return gameModel.findOne({chat_id : chatID})
-    .exec();
-}
+var gameController = {
+  findGameByChatID: (chatID) => {
+    return gameModel.findOne({chat_id : chatID})
+      .exec();
+  },
 
-function createGame(chatID, adminObjectID) {
-  return new Promise((resolve, reject) => {
-    findGameByChatID(chatID).then((gameObject) => {
-      if(!gameObject) {
-        var newGame = new gameModel();
+  createGame: (chatID, adminObjectID) => {
+    return new Promise((resolve, reject) => {
+      findGameByChatID(chatID).then((gameObject) => {
+        if(!gameObject) {
+          var newGame = new gameModel();
 
-        newGame.chat_id = chatID;
-        newGame.admin = adminObjectID;
-        newGame.player_list.push(adminObjectID);
-        newGame.game_active = false;
+          newGame.chat_id = chatID;
+          newGame.admin = adminObjectID;
+          newGame.player_list.push(adminObjectID);
+          newGame.game_active = false;
 
-        newGame.save()
+          newGame.save()
+            .then(() => {
+              return resolve();
+            }).catch((err) => {
+              return reject(err);
+            });
+        } else {
+          reject(`Game already exists!`);
+        }
+      });
+    });
+  },
+
+  deleteGame: (chatID, userObjectID) => {
+    return gameModel.findOne({chat_id : chatID, admin : userObjectID })
+      .remove()
+      .exec();
+  },
+
+  addUserToGame: (chatId, userObjectID) => {
+    return new Promise((resolve, reject) => {
+      findGameByChatID(chatID).then((gameObject) => {
+        if(!gameObject) {
+          return reject(`Game does not exist!`);
+        }
+
+        gameObject.player_list.push(userObjectID);
+
+        gameObject.save()
           .then(() => {
             return resolve();
           }).catch((err) => {
             return reject(err);
           });
-      } else {
-        reject(`Game already exists!`);
-      }
+      });
     });
-  });
-}
+  },
 
-function deleteGame(chatID, userObjectID) {
-  return gameModel.findOne({chat_id : chatID, admin : userObjectID })
-    .remove()
-    .exec();
-}
+  setAdmin: (chatID, userObjectID, newAdminID) => {
+    return new Promise((resolve, reject) => {
+      findGameByChatID(chatID).then((gameObject) => {
+        if(!gameObject) {
+          return reject(`Game does not exist!`);
+        }
+        if(gameObject.admin == userObjectID) {
+          gameObject.admin = newAdminID;
+        } else {
+          return reject(`Only the admin can change the games admin!`);
+        }
 
-function addUserToGame(chatID, userObjectID) {
-  return new Promise((resolve, reject) => {
-    findGameByChatID(chatID).then((gameObject) => {
-      if(!gameObject) {
-        return reject(`Game does not exist!`);
-      }
 
-      gameObject.player_list.push(userObjectID);
-
-      gameObject.save()
-        .then(() => {
-          return resolve();
-        }).catch((err) => {
-          return reject(err);
-        });
+        gameObject.save()
+          .then(() => {
+            return resolve();
+          }).catch((err) => {
+            return reject(err);
+          });
+      });
     });
-  });
+  }
 }
 
-function setAdmin(chatID, userObjectID, newAdminID) {
-  return new Promise((resolve, reject) => {
-    findGameByChatID(chatID).then((gameObject) => {
-      if(!gameObject) {
-        return reject(`Game does not exist!`);
-      }
-      if(gameObject.admin == userObjectID) {
-        gameObject.admin = newAdminID;
-      } else {
-        return reject(`Only the admin can change the games admin!`);
-      }
-
-
-      gameObject.save()
-        .then(() => {
-          return resolve();
-        }).catch((err) => {
-          return reject(err);
-        });
-    });
-  });
-}
-
-module.exports = {
-  createGame : createGame,
-  deleteGame : deleteGame,
-  addUserToGame : addUserToGame,
-  setAdmin : setAdmin
-}
+module.exports = gameController;
