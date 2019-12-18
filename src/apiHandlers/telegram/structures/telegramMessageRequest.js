@@ -20,12 +20,12 @@
 
     static requestTypes = Object.freeze({
         "SimpleMessage" : 1,
-        "KeyboardResponse" : 2,
-        "GenericResponse" : 3
+        "KeyboardMessage" : 2,
+        "GenericMessage" : 3
     });
 
-    constructor(requestType, toID, fromID, message, payload = null) {
-        this.requestType = requestType;
+    constructor(type, toID, fromID, message, payload = null) {
+        this.type = type;
         this.toID = toID;
         this.fromID = fromID;
         this.message = message;

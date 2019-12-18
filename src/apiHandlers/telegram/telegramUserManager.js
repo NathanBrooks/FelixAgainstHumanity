@@ -17,52 +17,77 @@
  'use strict';
 
 const TelegramUser = require('./telegramUser');
+const TelegramAPI = require('./telegramAPI');
 const Mutex = require('async-mutex').Mutex;
 
 class TelegramUserManager {
     constructor() {
-        this.userMap = new Map();
-        this.userMutexMap = new Map();
+        this.userMap = new Map();                                               // map to store TelegramUser objects in
+        this.userMutexMap = new Map();                                          // map to store mutexes to prevent concurrent edits to a single TelegramUser object    }
     }
 
     grabUserMutex(userID) {
-        let userMutex = this.userMutexMap.get(userID);
+        let userMutex = this.userMutexMap.get(userID);                          // see if mutex for this user exists
 
         if(!userMutex) {
-            userMutex = new Mutex();
-            this.userMutexMap.set(userID, userMutex);
+            userMutex = new Mutex();                                            // create new mutex
+            this.userMutexMap.set(userID, userMutex);                           // add mutex to map
         }
 
-        return userMutex;
+        return userMutex;                                                       // return the mutex we found/created
     }
 
     grabUser(userID) {
-        return new Promise((accept, reject) => {
-            let user = this.userMap.get(userID);
+        return new Promise((resolve, reject) => {
+            let user = this.userMap.get(userID);                                // see if the user already is in the map
             if(!user) {
-                user = new TelegramUser(userID);
-                user.initialize().then(() => {
-                    this.userMap.set(userID, user);
-                    return accept(user);
+                user = new TelegramUser(userID);                                // make new user object to store
+                user.initialize().then(() => {                                  // make sure the user exists
+                    this.userMap.set(userID, user);                             // add the user to the map
+                    return resolve(user);
                 }).catch((err) => {
-                    reject(err);
+                    reject(err);                                                // this will most likely hold a message if they don't have a private chat open
                 });
             } else {
-                return accept(user);
+                return resolve(user);                                            // we found the user, return it
             }
         });
     }
 
-    sendUserMessage(fromID, userID, message) {
-        return new Promise((accept, reject) => {
-            this.grabUserMutex().acquire().then((release) => {
-                this.grabUser(userID).then((user) => {
-                    user.addSimpleMessage(fromID, message);
-                    return release();
+    acquireUser(userID) {
+        return new Promise((resolve, reject) => {
+            this.grabUserMutex(userID).acquire().then((release) => {            // grab the mutex
+                this.grabUser(userID).then((user) => {                          // grab the user
+                    return resolve({release : release, user: user});            // pass both release mechanism and user to calling func
                 }).catch((err) => {
                     reject(err);
-                    return release();
+                    return release();                                           // if grabbing user fails, make sure to release the mutex
                 });
+            }).catch((err) => {
+                return reject(err);
+            });
+        });
+    }
+
+    sendUserMessage(fromID, userID, message) {
+        return new Promise((resolve, reject) => {
+            this.acquireUser(userID).then((data) => {
+                data.user.addSimpleMessage(fromID, message);                    // add to message queue for user
+                resolve();
+                return data.release();
+            }).catch((err) => {
+                return reject(err);
+            });
+        });
+    }
+
+    sendUserKeyboard(fromID, userID, message, payload, callback) {
+        return new Promise((resolve, reject) => {
+            this.acquireUser(userID).then((data) => {
+                data.user.addKeyboardMessage(fromID, message,
+                    payload, callback);                                         // add to message queue for user
+                resolve();
+                return data.release();
             }).catch((err) => {
                 return reject(err);
             });

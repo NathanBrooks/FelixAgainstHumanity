@@ -16,39 +16,59 @@
 
  'use strict';
 
-const TelegramMessageRequest = require('./TelegramMessageRequest');
+const TelegramAPI = require('./telegramAPI');
+const TelegramAPIHandler = require('./telegramAPI').TelegramAPIHandler;
+const TelegramMessageRequest = require('./structures/telegramMessageRequest');
 
 class TelegramUser {
     constructor(userID) {
-        this.userID = userID;
-        this.messageQueue = [];
-        this.currentMessage = null;
+        this.userID = userID;                                                   // the telegram ID of this user
+        this.messageQueue = [];                                                 // queue of TelegramMessageRequest objects
+        this.currentMessage = null;                                             // the current message waiting for a response or being processed
 
         // database stuff to fill this all back in
 
-        this.update();
+        this.update();                                                          // update the object state
     }
 
     initialize() {
-        return new Promise((accept, reject) => {
-            accept();
+        return new Promise((resolve, reject) => {
+            TelegramAPIHandler.checkForPrivateChat(this.userID)
+                .then(() => {
+                    resolve();
+                }).catch((err) => {
+                    reject(err);
+                });
         });
     }
 
     addSimpleMessage(fromID, message) {
-        let newMessage = new TelegramMessageRequest(
+        let newMessage = new TelegramMessageRequest(                            // create new message object
             TelegramMessageRequest.requestTypes.SimpleMessage,
-            this.userID, fromID, message, null);
+            this.userID, fromID, message, null, null);
 
-        this.messageQueue.push(newMessage);
-        this.update();
+        this.messageQueue.push(newMessage);                                     // add it to queue
+        this.update();                                                          // update the object state
+    }
+
+    addKeyboardMessage(fromID, message, payload) {
+        let newMessage = new TelegramMessageRequest(                            // create new message object
+            TelegramMessageRequest.requestTypes.KeyboardMessage,
+            this.userID, fromID, message, payload, callback);
+
+        this.messageQueue.push(newMessage);                                     // add it to queue
+        this.update();                                                          // update object state
     }
 
     update() {
-        if(this.messageQueue.length > 0) {
-            console.log("message queue for " + this.userID + " is:");
-            for(let key in this.messageQueue) {
-                console.log(this.messageQueue[key].message);
+        if(this.currentMessage == null && this.messageQueue.length != 0) {      // if there is no message being handled and at least one message waiting...
+            this.currentMessage = this.messageQueue.shift();                    // pull next message to handle
+            TelegramAPIHandler.sendTelegramMessageRequest(this.currentMessage); // send the message
+
+            if(this.currentMessage.type
+                == TelegramMessageRequest.requestTypes.SimpleMessage) {         // if we are a simple message, we don't get a response and just move to the next in queue
+                this.currentMessage = null;
+                this.update();
             }
         }
     }

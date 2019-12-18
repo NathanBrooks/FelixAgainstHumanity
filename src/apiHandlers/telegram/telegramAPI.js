@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Nathan Tyler Brooks
+ * Copyright 2019 Nathan Tyler Brooks
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,47 +17,64 @@
 'use strict';
 
 const Telegraf = require('telegraf');
+const TelegramMessageRequest = require('./structures/telegramMessageRequest');
+const ReplyMarkupKeyboard = require('./structures/replyMarkupKeyboard');
 
-console.log('initializing telegraf');
+console.log('initializing telegraf...');
 
-const bot = new Telegraf(process.env.TELEGRAM_API_KEY);
-bot.launch();
+const bot = new Telegraf(process.env.TELEGRAM_API_KEY);                         // get the api key to initialize bot
+bot.launch();                                                                   // start the bot
 
-bot.use((ctx, next) => {
-  console.log(ctx.message);
-  next();
+bot.use((context, next) => {                                                        // debug middleware
+    //console.log(context.message);
+    next();
 });
 
-class KeyboardButton {
-  constructor(text) {
-    this.text = text;
-  }
+function sendSimpleMessage(messageRequest) {
+    if(messageRequest == null) return;
+
+    return bot.telegram.sendMessage(messageRequest.toID,
+        messageRequest.message);
 }
 
-class ReplyKeyboadMarkup {
-  constructor(keyboardItems) {
-    this.keyboard = [];
-    this.one_time_keyboard = true;
-    for(var key in keyboardItems) {
-      this.keyboard.push([new KeyboardButton(keyboardItems[key])]);
+function sendKeyboardMessage(messageRequest) {
+    if(messageRequst == null) return;
+
+    return bot.telegram.sendMessage(messageRequest.toID,
+        messageRequest.message,
+        { reply_markup:
+            JSON.stringify(new ReplyMarkupKeyboard(messageRequest.payload))
+        }
+    );
+}
+
+class TelegramAPIHandler {
+    checkForPrivateChat(userID) {
+        return new Promise((resolve, reject) => {
+            bot.telegram.sendMessage(userID, `Check for user existence...`)     // see if we can send them a message...
+                .then(() => {
+                    resolve();
+                }).catch((err) => {
+                    reject('Could not message user: ' + err.toString());        // we could not get to the user's privat messages, they need to message us first.
+                });
+        });
     }
-  }
-}
 
-function sendKeyboard(chatID, message, keys) {
-  return bot.telegram.sendMessage(chatID, message,
-    { reply_markup: JSON.stringify(new ReplyKeyboadMarkup(keys)) } );
-}
+    sendTelegramMessageRequest(messageRequest) {
+        if(messageRequest == null) return;
 
-function checkForPrivateChat(userID) {
-  return new Promise((resolve, reject) => {
-    bot.telegram.sendMessage(userID, `Attempting to join game...`)
-      .then(() => {
-        return resolve(true);
-      }).catch((err) => {
-        return resolve(false);
-      });
-  });
+        switch(messageRequest.type) {
+            case TelegramMessageRequest.requestTypes.SimpleMessage:
+            case TelegramMessageRequest.requestTypes.GenericMessage:
+                sendSimpleMessage(messageRequest);
+                break;
+            case TelegramMessageRequest.requestTypes.KeyboardMessage:
+                sendKeyboardMessage(messageRequest);
+                break;
+            default:
+                console.log('Unsupported message type: ' + messageRequest);
+        }
+    }
 }
 
 /* debug and test commands */
@@ -80,6 +97,5 @@ bot.command('test', (context) => {
 
 module.exports = {
   bot : bot,
-  sendKeyboard : sendKeyboard,
-  sendMessage : bot.telegram.sendMessage,
+  TelegramAPIHandler : new TelegramAPIHandler()
 };
